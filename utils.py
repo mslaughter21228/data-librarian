@@ -1,6 +1,7 @@
 """
 Utility functions for The Data Librarian, including
 file sanitization, hashing, and logging.
+Author: Jesse Tudela
 """
 
 import os

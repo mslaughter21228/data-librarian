@@ -1,5 +1,6 @@
 """
 Web Interface for The Data Librarian - Duplicate File Cleaner
+Author: Jesse Tudela
 """
 
 import http.server
