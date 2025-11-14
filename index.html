@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>The Data Librarian</title>
+    <link href="https://fonts.googleapis.com/css2?family=Eagle+Lake&family=Roboto:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            font-family: 'Roboto', sans-serif;
+            /* Default font */
+        }
+
+        h1 {
+            color: #ffffff;
+            text-align: center;
+            margin-top: 0;
+            font-family: 'Eagle Lake', cursive;
+            /* Title font */
+            font-size: 2.5em;
+        }
+
+        #left-panel {
+            background-color: rgb(40, 42, 44);
+            /* Left panel background */
+            width: 30%;
+            color: #ffffff;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            position: relative;
+            /* Make left panel relative for absolute positioning of buttons */
+        }
+
+        #left-panel h1 {
+            margin-bottom: 20px;
+        }
+
+        #root-folder {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            word-wrap: break-word;
+        }
+
+        #status-label {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+            width: 150px;
+        }
+
+        #button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        #runButton,
+        #cancelButton {
+            padding: 12px 24px;
+            font-size: 18px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin: 5px 0;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        #runButton {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #runButton:hover {
+            background-color: #45a049;
+        }
+
+        #runButton:disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+        }
+
+        #cancelButton {
+            background-color: #FF4500;
+            color: white;
+        }
+
+        #cancelButton:hover {
+            background-color: #c8230c;
+        }
+
+        #cancelButton:disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+        }
+
+        #log-last-updated {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-bottom: 0;
+        }
+
+        #log-file-path {
+            font-size: 0.75em;
+            color: #ffffff;
+            margin-bottom: 20px;
+            word-wrap: break-word;
+        }
+
+        #right-panel {
+            flex: 1;
+            background-color: rgb(27, 28, 29);
+            /* Right panel background */
+            padding: 20px;
+            height: 100vh;
+        }
+
+        #output {
+            padding: 20px;
+            border: none;
+            height: auto;
+            overflow-y: auto;
+            font-family: monospace;
+            /* Monospace font for log */
+            color: #ffffff;
+            line-height: 1.5;
+            white-space: pre;
+            /* Preserve spaces and line breaks */
+            overflow-x: auto;
+            /* Enable horizontal scrolling */
+            box-sizing: border-box;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 100%;
+            align-items: flex-end;
+            /* Align items to the bottom of the container */
+        }
+
+        #log-file-path {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="left-panel">
+        <h1>The Data Librarian</h1>
+        <div class="row">
+            <div id="root-folder">Root Folder: {rootfolder}</div>
+        </div>
+
+        <div class="row" style="flex-grow: 2;"></div>
+
+        <div id="button-container">
+            <button id="runButton">Clean Duplicates</button>
+            <button id="cancelButton" disabled>Cancel</button>
+        </div>
+    </div>
+    <div id="right-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <h1>
+                <div id="status-label" style="background-color: grey;"><span id="status-text">{status}</span></div>
+            </h1>
+        </div>
+        <div class="row">
+            <div id="log-file-path">Log File: <span id="log_file_path">{log_file_path}</span></div>
+            <div id="log-last-updated">Log Last Updated: <span id="timestamp"></span></div>
+        </div>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        const runButton = document.getElementById('runButton');
+        const outputDiv = document.getElementById('output');
+        const cancelButton = document.getElementById('cancelButton');
+        const statusLabel = document.getElementById('status-label');
+        const statusText = document.getElementById('status-text');
+        const timestampElement = document.getElementById('timestamp');
+        let scriptRunning = false;
+        // Map status values to their corresponding colors
+        const statusColors = {
+            "Not Started": "grey",
+            "Running": "orange",
+            "Finished": "green",
+            "User Canceled": "blue",
+            "Error": "red"
+        };
+
+        // Apply Gemini color scheme
+        const geminiColors = {
+            background: 'rgb(27, 28, 29)',
+            /* Dark background for main content */
+            text: 'white',
+            primary: '#673ab7',
+            /* Purple */
+            primaryDark: '#512da8',
+            secondary: '#00b0ff',
+            /* Blue */
+            secondaryDark: '#00869e',
+            accent: '#ff4081',
+            /* Pink */
+            accentDark: '#f50057',
+            muted: '#7f8c8d',
+            /* Grey/Muted */
+            success: '#28a745',
+            /* Green */
+            info: '#17a2b8',
+            /* Cyan */
+            warning: '#ffc107',
+            /* Yellow */
+            danger: '#dc3545' /* Red */
+        };
+
+        document.body.style.backgroundColor = geminiColors.background;
+        document.body.style.color = geminiColors.text;
+
+        function appendOutput(text) {
+            const logEntry = document.createElement('div');
+            logEntry.textContent = text;
+            outputDiv.appendChild(logEntry);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+
+        function updateTimestamp() {
+            const now = new Date();
+            const formattedTimestamp = now.toLocaleString();
+            timestampElement.textContent = formattedTimestamp;
+        }
+
+        function setStatus(status) {
+            statusText.textContent = status;
+            statusLabel.style.backgroundColor = statusColors[status] || 'grey';
+            if (status !== "Not Started") {
+                updateTimestamp();
+            }
+        }
+
+
+        function checkStatus() {
+            if (status === "Not Started") return;
+
+            fetch('/check_status')
+                .then(response => response.json())
+                .then(data => {
+                    scriptRunning = data.running;
+                    runButton.disabled = scriptRunning;
+                    cancelButton.disabled = !scriptRunning;
+                    if (scriptRunning) {
+                        setStatus('Running');
+                        runButton.textContent = 'Script Running...';
+                        cancelButton.textContent = 'Cancel';
+                        getOutput();
+                    } else {
+                        if (statusText.textContent !== 'User Canceled') {
+                            setStatus('Finished');
+                        }
+                        runButton.disabled = false;
+                        cancelButton.disabled = true;
+                        runButton.textContent = 'Clean Duplicates';
+                        cancelButton.textContent = 'Cancel';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking status:', error);
+                    appendOutput('Error checking status.  See console.');
+                    setStatus('Error');
+                });
+        }
+
+        function getOutput() {
+            if (!scriptRunning) return;
+            fetch('/get_output')
+                .then(response => response.json())
+                .then(data => {
+                    data.output.forEach(line => appendOutput(line));
+                    if (scriptRunning) {
+                        setTimeout(getOutput, 500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error getting output:', error);
+                    appendOutput('Error getting output. See console.');
+                    setStatus('Error');
+                    if (scriptRunning) {
+                        setTimeout(getOutput, 5000);
+                    }
+
+                });
+        }
+
+        runButton.addEventListener('click', () => {
+            runButton.disabled = true;
+            cancelButton.disabled = true;
+            runButton.textContent = 'Starting Script...';
+            setStatus('Running');
+            fetch('/run_script')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'started') {
+                        scriptRunning = true;
+                        checkStatus();
+                    } else if (data.status === 'running') {
+                        alert('Script is already running!');
+                        runButton.disabled = true;
+                        cancelButton.disabled = true;
+                        runButton.textContent = 'Script Running...';
+                        checkStatus();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error starting script:', error);
+                    appendOutput('Error starting script. See console.');
+                    runButton.disabled = false;
+                    cancelButton.disabled = true;
+                    runButton.textContent = 'Clean Duplicates';
+                    setStatus('Error');
+                });
+        });
+
+        cancelButton.addEventListener('click', () => {
+            if (scriptRunning) {
+                runButton.disabled = true;
+                cancelButton.disabled = true;
+                cancelButton.textContent = 'Cancelling...';
+                fetch('/cancel_script')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'cancelled') {
+                            scriptRunning = false;
+                            runButton.disabled = false;
+                            cancelButton.disabled = true;
+                            runButton.textContent = 'Clean Duplicates';
+                            setStatus('User Canceled');
+                        } else if (data.status === 'not_running') {
+                            runButton.disabled = false;
+                            cancelButton.disabled = true;
+                            runButton.textContent = 'Clean Duplicates';
+                            appendOutput('Script is not running.');
+                            setStatus('Not Started');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error cancelling script:', error);
+                        appendOutput('Error cancelling script. See console.');
+                        runButton.disabled = false;
+                        cancelButton.disabled = false;
+                        cancelButton.textContent = 'Cancel';
+                        setStatus('Error');
+                    });
+            }
+        });
+
+        setStatus('Not Started'); // Initial status        
+    </script>
+</body>
+
+</html>
