@@ -310,7 +310,7 @@ def run_pdf_script(target_folder, max_mb, initial_pages):
                     try:
                         size_mb = os.path.getsize(file_path) / (1024 * 1024)
                         
-                        if size_mb > PDF_MAX_SIZE_MB: # Trigger threshold
+                        if size_mb > max_mb: # Use user-provided threshold
                             pdf_files_found += 1
                             log_to_buffer(f"Processing: {file} ({size_mb:.2f} MB)...\n")
                             
