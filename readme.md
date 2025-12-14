@@ -8,7 +8,7 @@ Whether you are preparing a dataset for AI tools like NotebookLM, cleaning up a 
 
 *   **Duplicate Detection & Cleanup**: Scans thousands of files to identify exact duplicates using SHA256 hashing. Instead of deleting them immediately, it safely moves them to a "Holding Bin" for your review.
 *   **Intelligent PDF Splitter**: Automatically detects large PDF files (e.g., >200MB) and splits them into smaller, manageable chunks. This is essential for compatibility with tools that have strict file size limits.
-*   **Web-Base Control**: No complex CLI commands to memorize. Launch the tool once and control everything from a modern, dark-mode web dashboard.
+*   **Web-Based Control**: No complex CLI commands to memorize. Launch the tool once and control everything from a modern, dark-mode web dashboard.
 *   **Non-Destructive Operations**: The tool is built with safety first. It never overwrites your original files and always creates copies or moves files to safe locations.
 
 ---
@@ -104,7 +104,7 @@ The right-hand panel of the interface acts as your **Operations Console**. behav
 4.  **Start**: Click **"Start Splitting"**.
 5.  **Result**:
     *   Large files (e.g., `MyBook.pdf`) remain untouched.
-    *   New files are created alongside them: `MyBook_part_1-1000.pdf`, `MyBook_part_1001-2000.pdf`, etc.
+    *   New files are created alongside them: `MyBook_pages_1-1000.pdf`, `MyBook_pages_1001-2000.pdf`, etc.
 
 ---
 
