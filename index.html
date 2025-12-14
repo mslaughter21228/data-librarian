@@ -539,14 +539,18 @@
                 .then(data => {
                     pdfScriptRunning = data.running;
                     runPdfButton.disabled = pdfScriptRunning;
+
                     if (pdfScriptRunning) {
                         runPdfButton.textContent = "Splitting...";
                         setStatus("Running");
                         getPdfOutput();
+                        // Re-check status in 2s (faster polling for better UX)
+                        setTimeout(checkPdfStatus, 2000);
                     } else {
                         runPdfButton.textContent = "Start Splitting";
-                        // Ideally we only reset status if WE were driving it, but simpler to just leave it
-                        // setStatus("Finished"); 
+                        if (statusText.textContent === "Running") {
+                            setStatus("Finished");
+                        }
                     }
                 });
         }
@@ -574,9 +578,10 @@
                         runPdfButton.disabled = true;
                         runPdfButton.textContent = "Splitting...";
                         getPdfOutput();
+                        checkPdfStatus(); // Start the status polling loop
                     } else if (data.status === 'running') {
                         alert("PDF Splitter is already running!");
-                        checkPdfStatus();
+                        checkPdfStatus(); // Start polling if we find it's already running
                     }
                 })
                 .catch(err => {
@@ -588,8 +593,8 @@
                 });
         });
 
-        // Initial Polls
-        setInterval(checkPdfStatus, 5000); // Check PDF status periodically in case of page refresh
+        // Initial Poll to see if anything is already running (e.g. after refresh)
+        checkPdfStatus();
 
         // Initial status is now set in HTML, this call ensures color is correct on load.
         setStatus('Not Started'); // This sets the color correctly on page load.
