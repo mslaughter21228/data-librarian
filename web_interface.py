@@ -222,9 +222,9 @@ def split_pdf_adaptive(file_path, target_max_mb, initial_page_chunk, log):
                 for i in range(start_page, end_page):
                     writer.add_page(reader.pages[i])
                 
-                part_num = (start_page // initial_page_chunk) + 1 # This logic might drift with adaptive sizing, but unique naming is key
-                # Use a specific naming convention to avoid collisions if we drift
-                output_filename = f"{base_name}_part_{start_page + 1}-{end_page}.pdf"
+                part_num = (start_page // initial_page_chunk) + 1 
+                # Use _pages_ as requested by user for clarity and collision avoidance
+                output_filename = f"{base_name}_pages_{start_page + 1}-{end_page}.pdf"
                 
                 try:
                     with open(output_filename, "wb") as out_file:
@@ -302,7 +302,8 @@ def run_pdf_script(target_folder, max_mb, initial_pages):
                     
                 if file.lower().endswith('.pdf'):
                     # Skip files that look like parts we created to avoid loops if scanning same dir
-                    if "_part_" in file:
+                    # Updated to check for new _pages_ convention
+                    if "_pages_" in file and file[file.rfind("_pages_")+7:file.rfind("_pages_")+8].isdigit():
                          continue
                          
                     file_path = os.path.join(root, file)
@@ -380,6 +381,22 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({'running': script_running, 'log_file_path': log_file_path}).encode('utf-8'))
+            return
+
+        elif url_path == '/get_pdf_output':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            output_data = {'output': pdf_output_buffer}
+            globals()['pdf_output_buffer'] = [] # Clear buffer
+            self.wfile.write(json.dumps(output_data).encode('utf-8'))
+            return
+
+        elif url_path == '/check_pdf_status':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'running': pdf_script_running}).encode('utf-8'))
             return
 
         elif url_path == '/cancel_script':
