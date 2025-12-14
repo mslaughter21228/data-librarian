@@ -382,7 +382,40 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({'running': script_running, 'log_file_path': log_file_path}).encode('utf-8'))
             return
 
-        elif self.path == "/run_script":
+        elif url_path == '/cancel_script':
+            if script_running:
+                print("Attempting to terminate script...")
+                globals()['keep_running'] = False  # Signal the loop to stop
+                # The script will stop on its own, no need to kill a process
+                globals()['output_buffer'].append("\n*** SCRIPT CANCELLED BY USER ***\n")
+
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'cancelled'}).encode('utf-8'))
+            else:
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'not_running'}).encode('utf-8'))
+            return
+            
+        else:
+            # Handle 404 for favicon.ico and other unhandled requests quietly
+            if url_path.endswith('favicon.ico'):
+                self.send_response(404)
+                self.end_headers()
+            else:
+                super().do_GET()  # Serve other files if present (e.g., if you add CSS/JS files)
+
+
+    def do_POST(self):
+        """
+        Handles POST requests.
+        """
+        url_path = urlparse(self.path).path
+
+        if url_path == "/run_script":
            if script_running:
                self.send_response(200)
                self.send_header("Content-type", "application/json")
@@ -406,7 +439,7 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
                self.send_header("Content-type", "application/json")
                self.end_headers()
                self.wfile.write(json.dumps({"status": "started"}).encode("utf-8"))
-            
+               
         elif url_path == '/run_pdf_splitter':
             if pdf_script_running:
                 self.send_response(200)
@@ -457,31 +490,7 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({'running': pdf_script_running}).encode('utf-8'))
             return
 
-        elif url_path == '/cancel_script':
-            if script_running:
-                print("Attempting to terminate script...")
-                globals()['keep_running'] = False  # Signal the loop to stop
-                # The script will stop on its own, no need to kill a process
-                globals()['output_buffer'].append("\n*** SCRIPT CANCELLED BY USER ***\n")
 
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'status': 'cancelled'}).encode('utf-8'))
-            else:
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'status': 'not_running'}).encode('utf-8'))
-            return
-            
-        else:
-            # Handle 404 for favicon.ico and other unhandled requests quietly
-            if url_path.endswith('favicon.ico'):
-                self.send_response(404)
-                self.end_headers()
-            else:
-                super().do_GET()  # Serve other files if present (e.g., if you add CSS/JS files)
 
 
 def start_server(port=PORT):
