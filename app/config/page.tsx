@@ -22,24 +22,24 @@ export default function ConfigPage() {
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[var(--bg-input)]/30 p-3 border border-[var(--border-dim)]">
                             <div className="space-y-1">
-                                <label className="text-xs text-white font-mono">Host</label>
-                                <input type="text" defaultValue="127.0.0.1" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                <label className="text-xs text-[var(--text-main)] font-mono">Host</label>
+                                <input type="text" defaultValue="127.0.0.1" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs text-white font-mono">Port</label>
-                                <input type="number" defaultValue="2226" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                <label className="text-xs text-[var(--text-main)] font-mono">Port</label>
+                                <input type="number" defaultValue="2226" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                             </div>
                             <div className="space-y-1 md:col-span-2">
-                                <label className="text-xs text-white font-mono">Root Path</label>
-                                <input type="text" defaultValue="/path/to/data" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                <label className="text-xs text-[var(--text-main)] font-mono">Root Path</label>
+                                <input type="text" defaultValue="/path/to/data" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                             </div>
                             <div className="space-y-1 md:col-span-2">
-                                <label className="text-xs text-white font-mono">Scripts Directory</label>
-                                <input type="text" defaultValue="./python_core" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                <label className="text-xs text-[var(--text-main)] font-mono">Scripts Directory</label>
+                                <input type="text" defaultValue="./python_core" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                             </div>
                             <div className="space-y-1 md:col-span-2">
-                                <label className="text-xs text-white font-mono">Virtual Env Path</label>
-                                <input type="text" defaultValue="" placeholder="(Optional)" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                <label className="text-xs text-[var(--text-main)] font-mono">Virtual Env Path</label>
+                                <input type="text" defaultValue="" placeholder="(Optional)" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                             </div>
                         </div>
                     </section>
@@ -53,19 +53,19 @@ export default function ConfigPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div className="flex items-center space-x-3 md:col-span-2 border-b border-[var(--border-dim)] pb-4">
                                     <input type="checkbox" defaultChecked className="h-4 w-4 accent-[var(--accent-primary)]" />
-                                    <span className="text-sm font-mono text-white">Dry Run Mode (Safe)</span>
+                                    <span className="text-sm font-mono text-[var(--text-main)]">Dry Run Mode (Safe)</span>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs text-white font-mono">Log Path</label>
-                                    <input type="text" defaultValue="./_data_librarian/logs" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                    <label className="text-xs text-[var(--text-main)] font-mono">Log Path</label>
+                                    <input type="text" defaultValue="./_data_librarian/logs" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs text-white font-mono">Log File Prefix</label>
-                                    <input type="text" defaultValue="weeding_" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                    <label className="text-xs text-[var(--text-main)] font-mono">Log File Prefix</label>
+                                    <input type="text" defaultValue="weeding_" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                                 </div>
                                 <div className="space-y-1 md:col-span-2">
-                                    <label className="text-xs text-white font-mono">Holding Bin</label>
-                                    <input type="text" defaultValue="./_duplicate_bin" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                    <label className="text-xs text-[var(--text-main)] font-mono">Holding Bin</label>
+                                    <input type="text" defaultValue="./_duplicate_bin" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                                 </div>
                             </div>
 
@@ -81,28 +81,28 @@ export default function ConfigPage() {
                             {weedingAdvancedOpen && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <div className="space-y-1">
-                                        <label className="text-xs text-white font-mono">Included Folders</label>
-                                        <textarea rows={2} className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
+                                        <label className="text-xs text-[var(--text-main)] font-mono">Included Folders</label>
+                                        <textarea rows={2} className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-white font-mono">Excluded Folders</label>
-                                        <textarea rows={2} defaultValue='["_duplicate_bin"]' className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none"></textarea>
+                                        <label className="text-xs text-[var(--text-main)] font-mono">Excluded Folders</label>
+                                        <textarea rows={2} defaultValue='["_duplicate_bin"]' className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none"></textarea>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-white font-mono">Included Files</label>
-                                        <textarea rows={2} className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
+                                        <label className="text-xs text-[var(--text-main)] font-mono">Included Files</label>
+                                        <textarea rows={2} className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-white font-mono">Excluded Files</label>
-                                        <textarea rows={2} className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
+                                        <label className="text-xs text-[var(--text-main)] font-mono">Excluded Files</label>
+                                        <textarea rows={2} className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-white font-mono">Included Extensions</label>
-                                        <input type="text" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]" />
+                                        <label className="text-xs text-[var(--text-main)] font-mono">Included Extensions</label>
+                                        <input type="text" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]" />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-white font-mono">Excluded Extensions</label>
-                                        <input type="text" defaultValue='[".tmp", ".bak"]' className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                        <label className="text-xs text-[var(--text-main)] font-mono">Excluded Extensions</label>
+                                        <input type="text" defaultValue='[".tmp", ".bak"]' className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                                     </div>
                                 </div>
                             )}
@@ -118,23 +118,23 @@ export default function ConfigPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div className="flex items-center space-x-3 md:col-span-2 border-b border-[var(--border-dim)] pb-4">
                                     <input type="checkbox" defaultChecked className="h-4 w-4 accent-[var(--accent-primary)]" />
-                                    <span className="text-sm font-mono text-white">Dry Run Mode (Safe)</span>
+                                    <span className="text-sm font-mono text-[var(--text-main)]">Dry Run Mode (Safe)</span>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs text-white font-mono">Max File Size (MB)</label>
-                                    <input type="number" defaultValue="100" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                    <label className="text-xs text-[var(--text-main)] font-mono">Max File Size (MB)</label>
+                                    <input type="number" defaultValue="100" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs text-white font-mono">Chunk Limit</label>
-                                    <input type="number" defaultValue="1000" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                    <label className="text-xs text-[var(--text-main)] font-mono">Chunk Limit</label>
+                                    <input type="number" defaultValue="1000" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs text-white font-mono">Log Path</label>
-                                    <input type="text" defaultValue="./_data_librarian/logs" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                    <label className="text-xs text-[var(--text-main)] font-mono">Log Path</label>
+                                    <input type="text" defaultValue="./_data_librarian/logs" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs text-white font-mono">Log File Prefix</label>
-                                    <input type="text" defaultValue="segmenting_" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                    <label className="text-xs text-[var(--text-main)] font-mono">Log File Prefix</label>
+                                    <input type="text" defaultValue="segmenting_" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                                 </div>
                             </div>
 
@@ -150,28 +150,28 @@ export default function ConfigPage() {
                             {segmentingAdvancedOpen && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <div className="space-y-1">
-                                        <label className="text-xs text-gray-300 font-mono">Included Folders</label>
-                                        <textarea rows={2} className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
+                                        <label className="text-xs text-[var(--text-main)] font-mono">Included Folders</label>
+                                        <textarea rows={2} className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-gray-300 font-mono">Excluded Folders</label>
-                                        <textarea rows={2} className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
+                                        <label className="text-xs text-[var(--text-main)] font-mono">Excluded Folders</label>
+                                        <textarea rows={2} className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-gray-300 font-mono">Included Files</label>
-                                        <textarea rows={2} className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
+                                        <label className="text-xs text-[var(--text-main)] font-mono">Included Files</label>
+                                        <textarea rows={2} className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-gray-300 font-mono">Excluded Files</label>
-                                        <textarea rows={2} className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
+                                        <label className="text-xs text-[var(--text-main)] font-mono">Excluded Files</label>
+                                        <textarea rows={2} className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]"></textarea>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-gray-300 font-mono">Included Extensions</label>
-                                        <input type="text" defaultValue='[".pdf"]' className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                        <label className="text-xs text-[var(--text-main)] font-mono">Included Extensions</label>
+                                        <input type="text" defaultValue='[".pdf"]' className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-gray-300 font-mono">Excluded Extensions</label>
-                                        <input type="text" className="w-full bg-[#09161c] border border-[var(--border-dim)] text-white px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]" />
+                                        <label className="text-xs text-[var(--text-main)] font-mono">Excluded Extensions</label>
+                                        <input type="text" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" placeholder="[]" />
                                     </div>
                                 </div>
                             )}

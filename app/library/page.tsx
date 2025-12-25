@@ -44,7 +44,7 @@ export default function LibraryPage() {
     return (
         <div className="max-w-4xl mx-auto h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
-                <h3 className="font-mono text-xl text-white flex items-center">
+                <h3 className="font-mono text-xl text-secondary flex items-center">
                     <i className="fa-solid fa-book mr-3 text-[var(--accent-primary)]"></i>
                     LIBRARY_INDEX
                 </h3>

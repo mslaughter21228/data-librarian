@@ -23,7 +23,7 @@
   --accent-dim: var(--primary-dim);
 
   --text-main: #e1e8eb;
-  --text-muted: #94a3b8;
+  --text-muted: #d1d5db;
   /* Slate-400 - Brighter than previous */
 
   /* Fonts will be handled by next/font, but we can map them here if needed for utilities */

@@ -29,7 +29,7 @@ export default function Header() {
         if (status === "RUNNING") return "text-[var(--accent-primary)] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]";
         if (status === "STOPPED") return "text-gray-400"; // Gray/Dim
         if (status === "CANCELLED") return "text-warning drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]";
-        return "text-[#4a5568]";
+        return "text-[var(--text-muted)]";
     };
 
     return (

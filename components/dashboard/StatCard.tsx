@@ -26,8 +26,8 @@ export default function StatCard({
                 <i className={`${icon} ${accentColor} text-lg`}></i>
             </div>
 
-            <div className="text-3xl font-mono text-white pl-2 break-all">{value}</div>
-            <div className="mt-2 text-xs text-gray-300 font-mono pl-2">
+            <div className="text-3xl font-mono text-[var(--text-main)] pl-2 break-all">{value}</div>
+            <div className="mt-2 text-xs text-[var(--text-muted)] font-mono pl-2">
                 {subtext}
             </div>
         </div>

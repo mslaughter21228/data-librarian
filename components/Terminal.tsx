@@ -36,10 +36,10 @@ export default function Terminal() {
 
     return (
         <div
-            className={`bg-[#060f13] border-t-2 border-[var(--border-dim)] flex flex-col transition-all duration-300 ease-in-out ${getHeightClass()}`}
+            className={`bg-[var(--bg-dark)] border-t-2 border-[var(--border-dim)] flex flex-col transition-all duration-300 ease-in-out ${getHeightClass()}`}
         >
             {/* Toolbar / StatusBar */}
-            <div className="h-8 bg-[#0d2029] flex items-center justify-between px-4 border-b border-[var(--border-dim)] shrink-0">
+            <div className="h-8 bg-[var(--bg-panel)] flex items-center justify-between px-4 border-b border-[var(--border-dim)] shrink-0">
 
                 {/* Left: Title */}
                 <div className="flex items-center space-x-2">
@@ -68,7 +68,7 @@ export default function Terminal() {
 
                     {/* Last Updated */}
                     <div className="text-[10px] font-mono text-[var(--text-muted)]">
-                        Last Updated: <span className="text-gray-300">{lastUpdated || "--:--:--"}</span>
+                        Last Updated: <span className="text-[var(--text-muted)]">{lastUpdated || "--:--:--"}</span>
                     </div>
 
                     <div className="w-[1px] h-3 bg-[var(--border-dim)]"></div>
@@ -101,27 +101,27 @@ export default function Terminal() {
             {viewMode !== "collapsed" && (
                 <div
                     ref={scrollRef}
-                    className="flex-1 p-4 overflow-y-auto font-mono text-xs md:text-sm bg-[#060f13]"
+                    className="flex-1 p-4 overflow-y-auto font-mono text-xs md:text-sm bg-[var(--bg-dark)]"
                 >
                     {logs.length === 0 ? (
-                        <div className="text-gray-600 italic">No output to display...</div>
+                        <div className="text-[var(--text-muted)] italic">No output to display...</div>
                     ) : (
                         <div className="space-y-1">
                             {logs.map((log) => (
                                 <div key={log.id} className="flex items-start">
-                                    <span className="text-[#556d7a] mr-3 select-none flex-shrink-0">
+                                    <span className="text-[var(--text-muted)] mr-3 select-none flex-shrink-0">
                                         [{log.timestamp}]
                                     </span>
                                     <span
                                         className={`font-bold mr-2 select-none flex-shrink-0 ${log.type === "error"
-                                            ? "text-red-500"
+                                            ? "text-error"
                                             : log.type === "success"
                                                 ? "text-[var(--accent-primary)]"
                                                 : log.type === "warn"
-                                                    ? "text-yellow-500"
+                                                    ? "text-warning"
                                                     : log.type === "system"
-                                                        ? "text-blue-400"
-                                                        : "text-gray-400"
+                                                        ? "text-info"
+                                                        : "text-[var(--text-muted)]"
                                             }`}
                                     >
                                         {log.type === "error"
@@ -134,7 +134,7 @@ export default function Terminal() {
                                                         ? "SYS "
                                                         : "INFO"}
                                     </span>
-                                    <span className="text-[#e1e8eb] break-all whitespace-pre-wrap">
+                                    <span className="text-[var(--text-main)] break-all whitespace-pre-wrap">
                                         {log.message}
                                     </span>
                                 </div>

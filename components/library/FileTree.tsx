@@ -15,7 +15,7 @@ const FileIcon = ({ name, type }: { name: string; type: "file" | "directory" }) 
     const ext = name.split('.').pop()?.toLowerCase();
     switch (ext) {
         case "pdf": return <i className="fa-regular fa-file-pdf text-error mr-2"></i>;
-        case "txt": return <i className="fa-regular fa-file-lines text-gray-400 mr-2"></i>;
+        case "txt": return <i className="fa-regular fa-file-lines text-[var(--text-muted)] mr-2"></i>;
         case "json": return <i className="fa-solid fa-file-code text-secondary mr-2"></i>;
         case "mp4":
         case "mkv": return <i className="fa-regular fa-file-video text-purple-500 mr-2"></i>;

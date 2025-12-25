@@ -10,7 +10,7 @@ export default function Sidebar() {
 
     return (
         <aside className="w-64 bg-[var(--bg-panel)] border-r border-[var(--border-dim)] flex flex-col z-20 h-full">
-            <div className="h-16 flex items-center justify-center border-b border-[var(--border-dim)] bg-[#050b0e]">
+            <div className="h-16 flex items-center justify-center border-b border-[var(--border-dim)] bg-[var(--bg-dark)]">
                 <img src="/logo.png" alt="Data Librarian" className="h-10 w-auto brightness-0 invert opacity-90" />
             </div>
 
@@ -20,7 +20,7 @@ export default function Sidebar() {
                     href="/dashboard"
                     className={`flex items-center px-6 py-2 text-[var(--text-main)] transition-all border-l-2 ${isActive("/dashboard")
                         ? "bg-[var(--bg-input)] border-[var(--accent-primary)] text-white"
-                        : "border-transparent hover:bg-[var(--bg-input)] hover:border-[var(--accent-primary)] text-gray-400 hover:text-white"
+                        : "border-transparent hover:bg-[var(--bg-input)] hover:border-[var(--accent-primary)] text-[var(--text-muted)] hover:text-white"
                         }`}
                 >
                     <i className="fa-solid fa-chart-line text-sm w-6 mr-3 text-[var(--accent-primary)]"></i>
@@ -30,7 +30,7 @@ export default function Sidebar() {
                     href="/library"
                     className={`flex items-center px-6 py-2 text-[var(--text-main)] transition-all border-l-2 ${isActive("/library")
                         ? "bg-[var(--bg-input)] border-[var(--accent-primary)] text-white"
-                        : "border-transparent hover:bg-[var(--bg-input)] hover:border-[var(--accent-primary)] text-gray-400 hover:text-white"
+                        : "border-transparent hover:bg-[var(--bg-input)] hover:border-[var(--accent-primary)] text-[var(--text-muted)] hover:text-white"
                         }`}
                 >
                     <i className="fa-solid fa-book text-sm w-6 mr-3 text-[var(--accent-primary)]"></i>
@@ -44,7 +44,7 @@ export default function Sidebar() {
                     href="/weeding"
                     className={`flex items-center px-6 py-2 text-[var(--text-main)] transition-all border-l-2 ${isActive("/weeding")
                         ? "bg-[var(--bg-input)] border-[var(--accent-primary)] text-white"
-                        : "border-transparent hover:bg-[var(--bg-input)] hover:border-[var(--accent-primary)] text-gray-400 hover:text-white"
+                        : "border-transparent hover:bg-[var(--bg-input)] hover:border-[var(--accent-primary)] text-[var(--text-muted)] hover:text-white"
                         }`}
                 >
                     <i className="fa-solid fa-trash-can text-sm w-6 mr-3 text-[var(--accent-primary)]"></i>
@@ -54,7 +54,7 @@ export default function Sidebar() {
                     href="/segmenting"
                     className={`flex items-center px-6 py-2 text-[var(--text-main)] transition-all border-l-2 ${isActive("/segmenting")
                         ? "bg-[var(--bg-input)] border-[var(--accent-primary)] text-white"
-                        : "border-transparent hover:bg-[var(--bg-input)] hover:border-[var(--accent-primary)] text-gray-400 hover:text-white"
+                        : "border-transparent hover:bg-[var(--bg-input)] hover:border-[var(--accent-primary)] text-[var(--text-muted)] hover:text-white"
                         }`}
                 >
                     <i className="fa-regular fa-file-pdf text-sm w-6 mr-3 text-[var(--accent-primary)]"></i>
@@ -68,7 +68,7 @@ export default function Sidebar() {
                     href="/config"
                     className={`flex items-center px-4 py-2 rounded transition-colors ${isActive("/config")
                         ? "text-[var(--accent-primary)] bg-[var(--bg-input)] font-bold"
-                        : "text-gray-400 hover:text-white hover:bg-[var(--bg-input)]"
+                        : "text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-input)]"
                         }`}
                 >
                     <i className="fa-solid fa-gear text-lg mr-3 text-[var(--accent-primary)]"></i>
