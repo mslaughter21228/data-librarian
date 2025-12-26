@@ -5,7 +5,7 @@
             "port": 2226,
             "scripts_dir": "./python_core",
             "virtual_env": null,
-            "root_path": "/path/to/data"
+            "root_path": "/home/jesse/test-data"
         },
         "weeding": {
             "dry_run_mode": true,

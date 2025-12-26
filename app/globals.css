@@ -68,6 +68,12 @@
   --color-success-bg: var(--success-bg);
   --color-success-hover: var(--success-hover);
 
+  --color-media: var(--media);
+  --color-media-hover: var(--media-hover);
+
+  --color-image: var(--image);
+  --color-image-hover: var(--image-hover);
+
   --font-ui: var(--font-inter);
   --font-mono: var(--font-fira-code);
   --font-retro: var(--font-vt323);
