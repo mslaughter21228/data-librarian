@@ -1,17 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { DataLibrarian as Types } from "@/types/library";
 import { useState } from "react";
-
-interface FileNode {
-    name: string;
-    path: string;
-    type: "file" | "directory";
-    size?: string;
-    created: string;
-    modified: string;
-}
 
 const getFileCategory = (ext: string | undefined) => {
     if (!ext) return "unknown";
@@ -66,18 +56,24 @@ const FileIcon = ({ name, type }: { name: string; type: "file" | "directory" }) 
     }
 };
 
-export default function FileTree({ data, currentPath }: { data: FileNode[], currentPath: string }) {
-    const router = useRouter();
-    const [isRefreshing, setIsRefreshing] = useState(false);
-    const [sortConfig, setSortConfig] = useState<{ key: keyof FileNode, direction: 'asc' | 'desc' } | null>(null);
+interface FileTreeProps {
+    data: Types.CatalogCard[];
+    currentPath: string;
+    onNavigate: (path: string) => void;
+    onRefresh: () => void;
+}
 
-    const handleRefresh = () => {
+export default function FileTree({ data, currentPath, onNavigate, onRefresh }: FileTreeProps) {
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [sortConfig, setSortConfig] = useState<{ key: keyof Types.CatalogCard, direction: 'asc' | 'desc' } | null>(null);
+
+    const handleRefreshClick = () => {
         setIsRefreshing(true);
-        router.refresh();
+        onRefresh();
         setTimeout(() => setIsRefreshing(false), 500); // Visual feedback
     };
 
-    const handleSort = (key: keyof FileNode) => {
+    const handleSort = (key: keyof Types.CatalogCard) => {
         let direction: 'asc' | 'desc' = 'asc';
         if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
             direction = 'desc';
@@ -129,9 +125,11 @@ export default function FileTree({ data, currentPath }: { data: FileNode[], curr
     const sortedData = getSortedData();
 
     // Logic to calculate parent path for ".." entry
+    // NOTE: Path separators might differ based on OS, but for web display '/' is standard
+    // The backend should handle normalization. Here we just assume simple structure.
     const parentPath = currentPath ? currentPath.split('/').slice(0, -1).join('/') : null;
 
-    const SortIcon = ({ column }: { column: keyof FileNode }) => {
+    const SortIcon = ({ column }: { column: keyof Types.CatalogCard }) => {
         if (sortConfig?.key !== column) return <i className="fa-solid fa-sort text-[var(--text-muted)] opacity-30 ml-1"></i>;
         return <i className={`fa-solid fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'} text-[var(--accent-primary)] ml-1`}></i>;
     };
@@ -145,7 +143,7 @@ export default function FileTree({ data, currentPath }: { data: FileNode[], curr
                 </span>
                 <div className="space-x-2">
                     <button
-                        onClick={handleRefresh}
+                        onClick={handleRefreshClick}
                         className={`cursor-pointer text-[var(--text-muted)] hover:text-white transition-all ${isRefreshing ? 'animate-spin text-[var(--accent-primary)]' : ''}`}
                         title="Refresh"
                     >
@@ -173,11 +171,11 @@ export default function FileTree({ data, currentPath }: { data: FileNode[], curr
                             </div>
                         </div>
 
-                        {/* Parent Directory Link */}
+                        {/* Parent Directory Link - Now uses onNavigate callback instead of Link */}
                         {parentPath !== null && (
-                            <Link
-                                href={`/library?path=${encodeURIComponent(parentPath)}`}
-                                className="flex items-center px-4 py-2 hover:bg-[var(--bg-input)] transition-colors border-b border-[var(--border-dim)]/30 group text-sm font-mono"
+                            <div
+                                onClick={() => onNavigate(parentPath)}
+                                className="flex items-center px-4 py-2 hover:bg-[var(--bg-input)] transition-colors border-b border-[var(--border-dim)]/30 group text-sm font-mono cursor-pointer"
                             >
                                 <div className="flex-1 flex items-center min-w-0 pr-4">
                                     <i className="fa-regular fa-folder text-[var(--accent-primary)] mr-3 text-sm"></i>
@@ -188,22 +186,29 @@ export default function FileTree({ data, currentPath }: { data: FileNode[], curr
                                 <div className="w-32 text-right text-xs text-[var(--text-muted)] shrink-0 hidden sm:block">-</div>
                                 <div className="w-32 text-right text-xs text-[var(--text-muted)] shrink-0 hidden lg:block ml-4">-</div>
                                 <div className="w-24 text-right text-xs text-[var(--text-muted)] shrink-0 ml-4">-</div>
-                            </Link>
+                            </div>
                         )}
 
                         {/* File List */}
                         {sortedData.map((node, idx) => {
                             const isDirectory = node.type === "directory";
-                            const href = isDirectory
-                                ? `/library?path=${encodeURIComponent(node.path)}`
-                                : `/library/serve?path=${encodeURIComponent(node.path)}`;
+
+                            // Directories trigger navigation, Files might do something else (for now do nothing/open)
+                            const handleClick = () => {
+                                if (isDirectory) {
+                                    onNavigate(node.path);
+                                } else {
+                                    // TODO: Handle file open/preview
+                                    // For now can just log or maybe open serve link if we reinstate that
+                                    console.log("File clicked:", node.path);
+                                }
+                            };
 
                             return (
-                                <Link
+                                <div
                                     key={`${node.name}-${idx}`}
-                                    href={href}
-                                    target={isDirectory ? undefined : "_blank"}
-                                    className="flex items-center px-4 py-2 hover:bg-[var(--bg-input)] transition-colors border-b border-[var(--border-dim)]/30 last:border-0 group text-sm font-mono"
+                                    onClick={handleClick}
+                                    className="flex items-center px-4 py-2 hover:bg-[var(--bg-input)] transition-colors border-b border-[var(--border-dim)]/30 last:border-0 group text-sm font-mono cursor-pointer"
                                 >
                                     <div className="flex-1 flex items-center min-w-0 pr-4">
                                         <FileIcon name={node.name} type={node.type} />
@@ -220,7 +225,7 @@ export default function FileTree({ data, currentPath }: { data: FileNode[], curr
                                     <div className="w-24 text-right text-xs text-[var(--text-muted)] shrink-0 ml-4">
                                         {node.size || "-"}
                                     </div>
-                                </Link>
+                                </div>
                             );
                         })}
                     </div>
