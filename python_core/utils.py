@@ -12,16 +12,11 @@ import sys
 import io
 from typing import TextIO, Optional
 
-def sanitize_filename(filename: str) -> str:
+def sanitize_filename(filename: str, max_length: int = 250) -> str:
     """
     Sanitizes a filename by removing extra spaces and hyphens, trimming whitespace,
     and removing invalid Windows filename characters. Preserves Unicode.
-
-    Args:
-        filename (str): The original filename.
-
-    Returns:
-        str: The sanitized filename.
+    Includes truncation for long filenames.
     """
     if not isinstance(filename, str):
         raise TypeError("filename must be a string")
@@ -42,6 +37,15 @@ def sanitize_filename(filename: str) -> str:
     # Ensure the filename is not just whitespace or empty
     if not sanitized.strip():
         sanitized = "unnamed_file"
+
+    # Length Truncation (Safety Fix)
+    if len(sanitized.encode('utf-8')) > max_length:
+        name, ext = os.path.splitext(sanitized)
+        limit = max_length - len(ext.encode('utf-8')) - 3
+        if limit > 0:
+            sanitized = name[:limit] + "..." + ext
+        else:
+            sanitized = sanitized[:max_length]
 
     return sanitized
 
