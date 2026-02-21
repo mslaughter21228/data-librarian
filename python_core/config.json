@@ -5,7 +5,11 @@
     "__WEEDING_SETTINGS__": "--- Duplicate Cleaner (The Weeder) ---",
     "DUPLICATE_HOLDING_DIR": "./_DuplicateHoldingBin",
     "EXCLUDED_FOLDERS": [
-        "_DuplicateHoldingBin"
+        "_DuplicateHoldingBin",
+        "Organized_Books",
+        ".git",
+        "venv",
+        "__pycache__"
     ],
     "LOG_NAME_PREFIX": "_duplicate_log",
     "__SEGMENTING_SETTINGS__": "--- PDF Splitter (The Partitioner) ---",

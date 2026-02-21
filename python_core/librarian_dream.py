@@ -1,8 +1,10 @@
 import os
 import shutil
 import warnings
+import sys
 from pypdf import PdfReader
 from ebooklib import epub
+
 # Suppress ebooklib warnings about future XML updates
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -11,12 +13,15 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 from utils import sanitize_filename
 
 # --- CONFIGURATION ---
-# The folder where we will LOOK for books to organize
+# Default folder if run directly without arguments
 SOURCE_FOLDER = "/home/mslaughter-admin/Library"
 
-# The folder where we will MOVE them to (organized)
-# You can change this to be the same as SOURCE_FOLDER if you want to organize in-place
-DESTINATION_ROOT = "/home/mslaughter-admin/Library/Organized_Books"
+# Allow the Web UI to pass the target folder dynamically
+if len(sys.argv) > 1:
+    SOURCE_FOLDER = sys.argv[1]
+
+# Destination is always "Organized_Books" inside the chosen source folder
+DESTINATION_ROOT = os.path.join(SOURCE_FOLDER, "Organized_Books")
 
 # Files to ignore (system files)
 IGNORE_FILES = {".DS_Store", "Thumbs.db", "desktop.ini", "config.json"}
@@ -41,7 +46,6 @@ def extract_metadata(file_path):
         elif ext == ".epub":
             try:
                 book = epub.read_epub(file_path)
-                # EbookLib returns tuples/lists for metadata
                 t_meta = book.get_metadata('DC', 'title')
                 if t_meta: title = t_meta[0][0]
                 
@@ -84,9 +88,13 @@ def organize_library():
             # 1. Extract Metadata
             title, author = extract_metadata(source_path)
             
-            # 2. Sanitize Names for Folders
-            safe_author = sanitize_filename(author)
-            safe_title = sanitize_filename(title)
+            # 2. Sanitize and TRUNCATE Names for Folders
+            # We strictly limit author to 60 characters and title to 120 characters.
+            raw_author = sanitize_filename(author)
+            raw_title = sanitize_filename(title)
+            
+            safe_author = (raw_author[:60] + '...') if len(raw_author) > 60 else raw_author
+            safe_title = (raw_title[:120] + '...') if len(raw_title) > 120 else raw_title
             ext = os.path.splitext(filename)[1]
             
             # 3. Construct New Path: Destination / Author / Title.ext
@@ -102,8 +110,7 @@ def organize_library():
                     # Handle filename collisions (e.g. two books same title)
                     counter = 1
                     while os.path.exists(dest_path):
-                        # If it's the EXACT same file (hash check), skip it or delete source
-                        # For now, we just rename to be safe
+                        # Add counter safely within limits
                         new_filename = f"{safe_title}_{counter}{ext}"
                         dest_path = os.path.join(dest_folder, new_filename)
                         counter += 1

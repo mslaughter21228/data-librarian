@@ -1,5 +1,5 @@
 """
-Web Interface for The Data Librarian - Duplicate File Cleaner
+Web Interface for The Data Librarian - Duplicate File Cleaner & Sorter
 """
 
 import http.server
@@ -12,6 +12,7 @@ import json
 import codecs
 import io
 import sys
+import subprocess
 from urllib.parse import urlparse
 from datetime import datetime
 
@@ -19,10 +20,10 @@ from datetime import datetime
 sys.stdout.reconfigure(line_buffering=True)
 sys.stderr.reconfigure(line_buffering=True)
 
-# Import from local modules
+# Import from local modules (removed log_message from utils so we can override it)
 try:
     from config import EXCLUDED_FOLDERS, DUPLICATE_HOLDING_DIR, LOG_NAME_PREFIX, MOVE_DUPLICATES, PORT, EXCLUDED_FILES, PDF_TARGET_CHUNK_MB, PDF_PAGE_CHUNK_LIMIT
-    from utils import sanitize_filename, calculate_sha256, log_message
+    from utils import sanitize_filename, calculate_sha256
     from pypdf import PdfReader, PdfWriter
 except ImportError:
     print("Error: 'config.py', 'utils.py', or 'pypdf' not found. Please make sure they are in the same directory and pypdf is installed.")
@@ -44,8 +45,21 @@ root_directory = os.path.abspath(".")
 pdf_script_running = False
 pdf_keep_running = True
 pdf_output_buffer = []
+
+# --- Sorter Global Variables ---
+sorter_script_running = False
+sorter_output_buffer = []
 # ------------------------------
 
+# --- UI LOGGER FOR CLEANER ---
+def log_message(log_file, message):
+    """Local wrapper to ensure logs go to the Web UI, terminal, and file."""
+    global output_buffer
+    output_buffer.append(message)
+    print(message, end="")
+    if log_file:
+        log_file.write(message)
+        log_file.flush()
 
 def run_script(target_folder=None):
     global script_running, output_buffer, files_checked, total_files, script_process, keep_running, log_file_path, root_directory
@@ -185,6 +199,39 @@ def run_script(target_folder=None):
         script_running = False
         script_process = None 
 
+# --- SORTER LOGIC ---
+def run_sorter_script(target_folder):
+    global sorter_script_running, sorter_output_buffer
+    sorter_script_running = True
+    sorter_output_buffer = []
+
+    def log_to_buffer(msg):
+        sorter_output_buffer.append(msg)
+        print(msg, end="")
+
+    try:
+        log_to_buffer(f"--- STARTING DREAM LIBRARIAN ---\n")
+        log_to_buffer(f"Target Directory: {target_folder}\n")
+        
+        process = subprocess.Popen(
+            [sys.executable, "librarian_dream.py", target_folder], 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1
+        )
+        
+        for line in process.stdout:
+            log_to_buffer(line)
+            
+        process.wait()
+        log_to_buffer(f"\n--- SORTER FINISHED (Code {process.returncode}) ---\n")
+        
+    except Exception as e:
+        log_to_buffer(f"*** ERROR RUNNING SORTER: {e}\n")
+    finally:
+        sorter_script_running = False
+
 # --- PDF LOGIC ---
 def split_pdf_adaptive(file_path, target_max_mb, initial_page_chunk, log):
     try:
@@ -278,6 +325,8 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
             except FileNotFoundError:
                 self.send_error(404, "File not found: index.html")
             return
+        
+        # Cleaner Routes
         elif url_path == '/get_output':
             self.send_response(200)
             self.send_header('Content-type', 'application/json; charset=utf-8')
@@ -291,20 +340,6 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'application/json; charset=utf-8')
             self.end_headers()
             self.wfile.write(json.dumps({'running': script_running, 'log_file_path': log_file_path}).encode('utf-8'))
-            return
-        elif url_path == '/get_pdf_output':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json; charset=utf-8')
-            self.end_headers()
-            output_data = {'output': pdf_output_buffer}
-            globals()['pdf_output_buffer'] = []
-            self.wfile.write(json.dumps(output_data).encode('utf-8'))
-            return
-        elif url_path == '/check_pdf_status':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json; charset=utf-8')
-            self.end_headers()
-            self.wfile.write(json.dumps({'running': pdf_script_running}).encode('utf-8'))
             return
         elif url_path == '/cancel_script':
             if script_running:
@@ -320,6 +355,39 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'status': 'not_running'}).encode('utf-8'))
             return
+            
+        # PDF Routes
+        elif url_path == '/get_pdf_output':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json; charset=utf-8')
+            self.end_headers()
+            output_data = {'output': pdf_output_buffer}
+            globals()['pdf_output_buffer'] = []
+            self.wfile.write(json.dumps(output_data).encode('utf-8'))
+            return
+        elif url_path == '/check_pdf_status':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'running': pdf_script_running}).encode('utf-8'))
+            return
+            
+        # Sorter Routes
+        elif url_path == '/get_sorter_output':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json; charset=utf-8')
+            self.end_headers()
+            output_data = {'output': sorter_output_buffer}
+            globals()['sorter_output_buffer'] = []
+            self.wfile.write(json.dumps(output_data).encode('utf-8'))
+            return
+        elif url_path == '/check_sorter_status':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'running': sorter_script_running}).encode('utf-8'))
+            return
+            
         else:
             if url_path.endswith('favicon.ico'):
                 self.send_response(404)
@@ -329,6 +397,8 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         url_path = urlparse(self.path).path
+        
+        # Cleaner Post
         if url_path == "/run_script":
            if script_running:
                self.send_response(200)
@@ -350,6 +420,7 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
                self.end_headers()
                self.wfile.write(json.dumps({"status": "started"}).encode("utf-8"))
                
+        # PDF Post
         elif url_path == '/run_pdf_splitter':
             if pdf_script_running:
                 self.send_response(200)
@@ -366,6 +437,28 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
             try: initial_pages = int(data.get('initial_page_count', PDF_PAGE_CHUNK_LIMIT))
             except: initial_pages = PDF_PAGE_CHUNK_LIMIT
             thread = threading.Thread(target=run_pdf_script, args=(target_folder, max_mb, initial_pages))
+            thread.daemon = True
+            thread.start()
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'started'}).encode('utf-8'))
+            return
+            
+        # Sorter Post
+        elif url_path == '/run_sorter':
+            if sorter_script_running:
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'running'}).encode('utf-8'))
+                return
+            content_len = int(self.headers.get('Content-Length', 0))
+            post_body = self.rfile.read(content_len)
+            data = json.loads(post_body)
+            target_folder = data.get('target_folder', root_directory)
+            
+            thread = threading.Thread(target=run_sorter_script, args=(target_folder,))
             thread.daemon = True
             thread.start()
             self.send_response(200)
