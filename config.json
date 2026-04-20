@@ -1,0 +1,13 @@
+{
+    "PORT": 2226,
+    "DEFAULT_TARGET_FOLDER": "/home/mslaughter-admin/projects/Library",
+    "MOVE_DUPLICATES": false,
+    "DUPLICATE_HOLDING_DIR": "./_DuplicateHoldingBin",
+    "LOG_NAME_PREFIX": "_duplicate_log",
+    "EXCLUDED_FOLDERS": ["_DuplicateHoldingBin"],
+    "USER_EXCLUDED_FILES": [],
+    "PDF_TARGET_CHUNK_MB": 100,
+    "PDF_PAGE_CHUNK_LIMIT": 1000,
+    "CLEANER_EXCLUDED_EXTENSIONS": [".py", ".json", ".html", ".txt", ".sh"],
+    "CLEANER_EXCLUDED_DIRS": ["_DuplicateHoldingBin", "Organized_Books"]
+}
