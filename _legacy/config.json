@@ -12,5 +12,21 @@
     "PDF_TARGET_CHUNK_MB": 100,
     "PDF_PAGE_CHUNK_LIMIT": 1000,
     "__INTERNAL_SETTINGS__": "--- User Exclusions ---",
-    "USER_EXCLUDED_FILES": []
+    "USER_EXCLUDED_FILES": [],
+    "CLEANER_EXTRACT_METADATA_BEFORE_RENAME": true,
+    "CLEANER_METADATA_FIELDS_TO_EXTRACT": [
+        "isbn",
+        "year",
+        "author_raw",
+        "publisher_raw",
+        "source_site",
+        "archive_hash",
+        "edition"
+    ],
+    "SECONDARY_SCAN_FOLDER": "",
+    "DEDUPE_KEEPER_SCORING": true,
+    "DEDUPE_PREFERRED_EXTENSIONS": [
+        ".pdf",
+        ".epub"
+    ]
 }

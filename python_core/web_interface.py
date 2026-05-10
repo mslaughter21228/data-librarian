@@ -21,8 +21,14 @@ sys.stderr.reconfigure(line_buffering=True)
 
 # Import from local modules
 try:
-    from config import EXCLUDED_FOLDERS, DUPLICATE_HOLDING_DIR, LOG_NAME_PREFIX, MOVE_DUPLICATES, PORT, EXCLUDED_FILES, PDF_TARGET_CHUNK_MB, PDF_PAGE_CHUNK_LIMIT, DEFAULT_TARGET_FOLDER, load_config
+    from config import (EXCLUDED_FOLDERS, DUPLICATE_HOLDING_DIR, LOG_NAME_PREFIX,
+                        MOVE_DUPLICATES, PORT, EXCLUDED_FILES, PDF_TARGET_CHUNK_MB,
+                        PDF_PAGE_CHUNK_LIMIT, DEFAULT_TARGET_FOLDER, load_config,
+                        SECONDARY_SCAN_FOLDER, DEDUPE_KEEPER_SCORING,
+                        DEDUPE_PREFERRED_EXTENSIONS, LIBRARY_MOUNT_PATH,
+                        CLEANER_EXTRACT_METADATA_BEFORE_RENAME)
     from utils import sanitize_filename, calculate_sha256, log_message
+    from dedupe import run_dedupe
     from pypdf import PdfReader, PdfWriter
     from librarian_dream import organize_library
 except ImportError:
@@ -47,6 +53,7 @@ script_running = False
 organize_running = False
 script_process = None
 keep_running = True
+organize_stop_event = threading.Event()
 total_files = 0
 files_checked = 0
 log_file_path = ""
@@ -61,151 +68,98 @@ pdf_output_buffer = []
 
 
 def run_script(target_folder=None):
+    """
+    Entry point called by the web UI (/run_script route).
+    Delegates to dedupe.run_dedupe() which implements keeper scoring
+    and optional SECONDARY_SCAN_FOLDER support (Gap 2).
+    """
     global script_running, output_buffer, files_checked, total_files, script_process, keep_running, log_file_path, root_directory
 
     script_running = True
-    output_buffer = []  
-    files_checked = 0  
-    total_files = 0
-    keep_running = True
-    log = None
+    output_buffer  = []
+    files_checked  = 0
+    total_files    = 0
+    keep_running   = True
 
     try:
         start_time = datetime.now()
-        timestamp = start_time.strftime("%m-%d-%Y_%H-%M-%S")
+        timestamp  = start_time.strftime("%m-%d-%Y_%H-%M-%S")
+        scan_dir   = target_folder if target_folder else root_directory
+
+        holding_dir  = os.path.join(scan_dir, "_DuplicateHoldingBin")
         log_file_name = f"{os.path.splitext(LOG_NAME_PREFIX)[0]}_{timestamp}.txt"
-        
-        scan_dir = target_folder if target_folder else root_directory
-        dynamic_holding_dir = os.path.join(scan_dir, "_DuplicateHoldingBin")
-        
-        if not os.path.exists(dynamic_holding_dir):
-            try:
-                os.makedirs(dynamic_holding_dir)
-            except OSError as e:
-                output_buffer.append(f"*** CRITICAL ERROR: Could not create holding directory '{dynamic_holding_dir}': {e!r}\n")
-                return
+        log_path     = os.path.join(holding_dir, log_file_name)
+        log_file_path = os.path.abspath(log_path)
 
-        log_path = os.path.join(dynamic_holding_dir, log_file_name)
-        log_file_path = os.path.abspath(log_path) 
+        os.makedirs(holding_dir, exist_ok=True)
 
-        file_hashes = {}
-        files_moved = 0
+        def on_progress(line: str):
+            output_buffer.append(line + "\n")
+            # Update files_checked counter from log lines
+            global files_checked
+            if line.startswith('Total files to scan:') or line.startswith('Total files to hash:'):
+                try:
+                    total = int(line.split(':')[1].strip().replace(',', ''))
+                    global total_files
+                    total_files = total
+                except Exception:
+                    pass
 
+        result = run_dedupe(
+            scan_dir             = scan_dir,
+            secondary_dir        = SECONDARY_SCAN_FOLDER,
+            move_duplicates      = MOVE_DUPLICATES,
+            use_keeper_scoring   = DEDUPE_KEEPER_SCORING,
+            preferred_extensions = DEDUPE_PREFERRED_EXTENSIONS,
+            excluded_folders     = list(EXCLUDED_FOLDERS),
+            excluded_files       = set(EXCLUDED_FILES),
+            stop_event           = organize_stop_event,
+            progress_callback    = on_progress,
+        )
+
+        files_checked = result['files_processed']
+
+        # Write log file
         try:
-            log = codecs.open(log_path, "w", encoding="utf-8")
-            
-            log_message(log, f"DUPLICATE FILE DETECTION STARTED AT: [{start_time.isoformat()}]\n")
-            log_message(log, "----------------------------------------------------------------------------------------------------\n\n")
-
-            log_message(log, "Calculating total files...\n")
-            temp_total = 0
-            
-            for root, dirs, files in os.walk(scan_dir):
-                dirs[:] = [d for d in dirs if d not in EXCLUDED_FOLDERS]
-                current_files = [f for f in files if f not in EXCLUDED_FILES]
-                temp_total += len(current_files)
-            
-            total_files = temp_total 
-            log_message(log, f"Scanning directory: {scan_dir}\n")
-            log_message(log, f"Total files to scan: {total_files}\n\n")
-            
-            files_processed = 0 
-            for root, dirs, files in os.walk(scan_dir):
-                if not keep_running:
-                    log_message(log, "\n*** USER CANCELLATION DETECTED ***\n")
-                    break
-                    
-                dirs[:] = [d for d in dirs if d not in EXCLUDED_FOLDERS]
-
-                for filename in files:
-                    if not keep_running:
-                        break
-
-                    if filename in EXCLUDED_FILES:
-                        continue
-
-                    filepath = os.path.join(root, filename)
-                    files_checked += 1 
-                    files_processed += 1 
-                    
-                    try:
-                        file_hash = calculate_sha256(filepath)
-                        if file_hash is None:
-                            continue
-
-                        if file_hash in file_hashes:
-                            original_filepath = file_hashes[file_hash]
-                            original_filename = os.path.basename(original_filepath)
-                            duplicate_filename = os.path.basename(filepath)
-                            sanitized_filename = sanitize_filename(duplicate_filename) 
-                            sanitized_dest_path = os.path.join(dynamic_holding_dir, sanitized_filename)
-
-                            if MOVE_DUPLICATES:
-                                log_message(
-                                    log,
-                                    f"Duplicate found & MOVED:\n  Original: [{original_filepath!r}]\n  Duplicate: [{filepath!r}]\n  Moved to: [{sanitized_dest_path!r}]\n\n",
-                                )
-                                try:
-                                    if os.path.exists(filepath): 
-                                        shutil.move(filepath, sanitized_dest_path)
-                                        files_moved += 1
-                                    else:
-                                        log_message(log, f"*** WARNING: File vanished before move: {filepath!r}\n\n")
-                                except (OSError, IOError) as e:
-                                    log_message(log, f"*** ERROR moving file: {duplicate_filename!r} to {sanitized_dest_path!r} - {e!r}\n\n")
-                            else:
-                                log_message(
-                                    log,
-                                    f"Duplicate found (DRY RUN - NOT MOVED):\n  Original: [{original_filepath!r}]\n  Duplicate: [{filepath!r}]\n  Would move as: [{sanitized_dest_path!r}]\n\n",
-                                )
-                        else:
-                            file_hashes[file_hash] = filepath
-                            
-                    except Exception as e:
-                        log_message(log, f"*** ERROR processing file [{filepath!r}]: {e!r}\n\n")
-
-            end_time = datetime.now()
-            duration = end_time - start_time
-            log_message(
-                log,
-                f"\n----------------------------------------------------------------------------------------------------\n"
-                f"DUPLICATE FILE DETECTION FINISHED AT: [{end_time.isoformat()}]\n"
-                f"Total Time Taken: [{duration}]\n"
-                f"Total Files Processed: [{files_processed}]\n"
-                f"Total Files Moved: [{files_moved}]\n",
-            )
-
-        except (OSError, IOError) as e:
-            error_msg = f"*** CRITICAL ERROR: Failed to open or write to log file: {log_path!r} - {e!r}\n"
-            sys.stderr.write(error_msg)
-            output_buffer.append(error_msg) 
+            with codecs.open(log_path, "w", encoding="utf-8") as lf:
+                lf.write(f"DEDUPE RUN: {start_time.isoformat()}\n")
+                lf.write("=" * 70 + "\n")
+                for line in result['log_lines']:
+                    lf.write(line + "\n")
+                end_time = datetime.now()
+                lf.write(f"\nCompleted: {end_time.isoformat()} (duration: {end_time - start_time})\n")
         except Exception as e:
-            error_msg = f"*** UNEXPECTED ERROR in run_script: {e!r}\n"
-            sys.stderr.write(error_msg)
-            output_buffer.append(error_msg)
-            if log:
-                log_message(log, error_msg)
-        finally:
-            if log:
-                log.close()
+            output_buffer.append(f"*** WARNING: Could not write log file: {e}\n")
 
     except Exception as e:
-         error_msg = f"*** CRITICAL INIT ERROR: {e!r}\n"
-         sys.stderr.write(error_msg)
-         output_buffer.append(error_msg)
-    
+        error_msg = f"*** CRITICAL ERROR in run_script: {e!r}\n"
+        sys.stderr.write(error_msg)
+        output_buffer.append(error_msg)
     finally:
         script_running = False
-        script_process = None 
+        script_process = None
 
 # --- ORGANIZER LOGIC ---
 def run_organizer(target_folder=None):
-    global organize_running
+    global organize_running, organize_stop_event, output_buffer
     organize_running = True
+    organize_stop_event.clear()
+    output_buffer = []
+
+    def on_progress(line: str):
+        output_buffer.append(line + "\n")
+        print(line, flush=True)
+
     try:
-        organize_library(target_folder)
+        organize_library(
+            source_folder=target_folder,
+            progress_callback=on_progress,
+            stop_event=organize_stop_event,
+        )
     except Exception as e:
-        print(f"*** ERROR in organize_library: {e!r}")
+        msg = f"*** ERROR in organize_library: {e!r}"
+        output_buffer.append(msg + "\n")
+        print(msg, flush=True)
     finally:
         organize_running = False
 
@@ -438,6 +392,11 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
                     }],
                     "PDF_TARGET_CHUNK_MB": PDF_TARGET_CHUNK_MB,
                     "PDF_PAGE_CHUNK_LIMIT": PDF_PAGE_CHUNK_LIMIT,
+                    "SECONDARY_SCAN_FOLDER": SECONDARY_SCAN_FOLDER,
+                    "DEDUPE_KEEPER_SCORING": DEDUPE_KEEPER_SCORING,
+                    "DEDUPE_PREFERRED_EXTENSIONS": DEDUPE_PREFERRED_EXTENSIONS,
+                    "CLEANER_EXTRACT_METADATA_BEFORE_RENAME": CLEANER_EXTRACT_METADATA_BEFORE_RENAME,
+                    "LIBRARY_MOUNT_PATH": LIBRARY_MOUNT_PATH,
                 }
                 self.wfile.write(json.dumps({'success': True, 'data': config_data}).encode('utf-8'))
             except Exception as e:
@@ -561,6 +520,18 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.end_headers()
+                self.wfile.write(json.dumps({'status': 'not_running'}).encode('utf-8'))
+            return
+        elif url_path == '/cancel_organize':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            if organize_running:
+                organize_stop_event.set()
+                globals()['output_buffer'].append("\n*** ORGANIZER CANCELLED BY USER ***\n")
+                self.wfile.write(json.dumps({'status': 'cancelled'}).encode('utf-8'))
+            else:
                 self.wfile.write(json.dumps({'status': 'not_running'}).encode('utf-8'))
             return
         else:
@@ -852,7 +823,10 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nShutting down server...")
         if script_running:
-            print("Stopping running script...")
+            print("Stopping dedupe script...")
             keep_running = False
-            time.sleep(1) 
+        if organize_running:
+            print("Stopping organizer...")
+            organize_stop_event.set()
+        time.sleep(1)
         sys.exit(0)

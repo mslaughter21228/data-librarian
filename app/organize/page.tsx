@@ -4,37 +4,28 @@ import { useTerminal } from "@/context/TerminalContext";
 import { DataLibrarian as StaticConfig } from "@/types/config";
 import { useState, useEffect } from "react";
 
-const STORAGE_KEY = "dl_last_path_organize";
+const SHARED_PATH_KEY = "dl_active_library_path";
 
 export default function OrganizePage() {
     const { addLog } = useTerminal();
     const [targetPath, setTargetPath] = useState("");
     const [isRunning, setIsRunning] = useState(false);
 
-    // Pre-populate: localStorage first, then live config, then static build-time config
+    // Read the shared active library path set from the Library tab
     useEffect(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-            setTargetPath(saved);
-            return;
-        }
+        const shared = localStorage.getItem(SHARED_PATH_KEY);
+        if (shared) { setTargetPath(shared); return; }
+        // Fallback to config default if Library tab has never been used
         const staticDefault = StaticConfig.Config.DEFAULT_TARGET_FOLDER || "";
-        if (staticDefault) setTargetPath(staticDefault);
-
+        if (staticDefault) { setTargetPath(staticDefault); return; }
         fetch("http://localhost:2226/get_config")
             .then(res => res.json())
             .then(result => {
-                if (result.success && result.data.DEFAULT_TARGET_FOLDER) {
+                if (result.success && result.data.DEFAULT_TARGET_FOLDER)
                     setTargetPath(result.data.DEFAULT_TARGET_FOLDER);
-                }
             })
             .catch(() => {});
     }, []);
-
-    const handlePathChange = (newPath: string) => {
-        setTargetPath(newPath);
-        localStorage.setItem(STORAGE_KEY, newPath);
-    };
 
     const handleStart = async () => {
         if (!targetPath) {
@@ -77,6 +68,15 @@ export default function OrganizePage() {
         }
     };
 
+    const handleStop = async () => {
+        try {
+            await fetch("http://localhost:2226/cancel_organize");
+            addLog("Stop requested — organizer will halt after current file.", "warn");
+        } catch (error) {
+            addLog(`Failed to send stop signal: ${error}`, "error");
+        }
+    };
+
     const pollStatus = () => {
         const interval = setInterval(async () => {
             try {
@@ -107,22 +107,16 @@ export default function OrganizePage() {
                 <div className="space-y-6">
                     <div className="space-y-2">
                         <label className="block text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider">
-                            Source Folder (Absolute Path)
+                            Source Folder
                         </label>
-                        <div className="flex">
-                            <span className="inline-flex items-center px-3 rounded-l border border-r-0 border-[var(--border-dim)] bg-[var(--bg-input)] text-[var(--text-muted)]">
-                                <i className="fa-solid fa-folder-open text-xs"></i>
+                        <div className="flex items-center gap-3 px-4 py-2.5 bg-[var(--bg-input)] border border-[var(--border-dim)] rounded-sm">
+                            <i className="fa-solid fa-folder text-[var(--accent-primary)]"></i>
+                            <span className="font-mono text-sm text-[var(--text-main)] break-all">
+                                {targetPath || <span className="text-[var(--text-muted)]">No folder selected — go to Library tab to set active folder</span>}
                             </span>
-                            <input
-                                type="text"
-                                value={targetPath}
-                                onChange={(e) => handlePathChange(e.target.value)}
-                                placeholder="/path/to/library"
-                                className="flex-1 block w-full rounded-none rounded-r bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-4 py-2.5 focus:ring-1 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] outline-none font-mono text-sm placeholder-[var(--text-muted)] transition-all"
-                            />
                         </div>
                         <p className="text-[10px] text-[var(--text-muted)] font-mono">
-                            PDF and EPUB files will be moved into a new <span className="text-[var(--accent-primary)]">Organized_Books/</span> subfolder, sorted by Author.
+                            Active folder is set from the <span className="text-[var(--accent-primary)]">Library</span> tab. PDF and EPUB files will be moved into a new <span className="text-[var(--accent-primary)]">Organized_Books/</span> subfolder, sorted by Author.
                         </p>
                     </div>
 
@@ -138,7 +132,16 @@ export default function OrganizePage() {
                         </ul>
                     </div>
 
-                    <div className="pt-6 border-t border-[var(--border-dim)] flex justify-end">
+                    <div className="pt-6 border-t border-[var(--border-dim)] flex justify-end gap-3">
+                        {isRunning && (
+                            <button
+                                onClick={handleStop}
+                                className="bg-transparent border border-red-500 text-red-400 hover:bg-red-500 hover:text-white px-8 py-3 rounded-sm font-bold font-mono tracking-wide transition-all"
+                            >
+                                <i className="fa-solid fa-stop mr-2"></i>
+                                Stop
+                            </button>
+                        )}
                         <button
                             onClick={handleStart}
                             disabled={isRunning}

@@ -177,7 +177,7 @@ export default function FileTree({
             {/* ── Toolbar: breadcrumb + search + refresh ── */}
             <div className="bg-[var(--bg-panel)] border-b border-[var(--border-dim)] px-4 py-2 shrink-0 flex items-center gap-3">
                 {/* Breadcrumb */}
-                <div className="flex items-center gap-1 text-[10px] font-mono flex-1 min-w-0 overflow-hidden">
+                <div className="flex items-center gap-1 text-sm font-mono flex-1 min-w-0 overflow-hidden">
                     {breadcrumbs.map((crumb, idx) => (
                         <span key={idx} className="flex items-center gap-1 shrink-0">
                             {idx > 0 && <span className="text-[var(--text-muted)]">/</span>}

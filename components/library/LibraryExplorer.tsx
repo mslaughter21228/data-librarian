@@ -124,7 +124,7 @@ function FileDetailPanel({ file, onClose, onOpenMetadata }: FileDetailPanelProps
 // ── Main Explorer Component ──────────────────────────────────────────────────
 export default function LibraryExplorer() {
     const router = useRouter();
-    const [currentPath, setCurrentPath, isMounted] = useLocalPath("dl_last_path_library", "");
+    const [currentPath, setCurrentPath, isMounted] = useLocalPath("dl_active_library_path", "");
     const [cards, setCards] = useState<Types.CatalogCard[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);

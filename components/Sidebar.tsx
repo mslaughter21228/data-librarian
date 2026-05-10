@@ -37,17 +37,6 @@ export default function Sidebar() {
                     <span className="text-sm font-medium">Library</span>
                 </Link>
 
-                <Link
-                    href="/metadata"
-                    className={`flex items-center px-6 py-2 text-[var(--text-main)] transition-all border-l-2 ${isActive("/metadata")
-                        ? "bg-[var(--bg-input)] border-[var(--accent-primary)] text-white"
-                        : "border-transparent hover:bg-[var(--bg-input)] hover:border-[var(--accent-primary)] text-[var(--text-muted)] hover:text-white"
-                        }`}
-                >
-                    <i className="fa-solid fa-tag text-sm w-6 mr-3 text-[var(--accent-primary)]"></i>
-                    <span className="text-sm font-medium">Metadata</span>
-                </Link>
-
                 <div className="px-4 mt-6 mb-2 text-[10px] font-bold text-secondary uppercase tracking-wider font-mono opacity-80">
                     Core Modules
                 </div>
@@ -60,6 +49,16 @@ export default function Sidebar() {
                 >
                     <i className="fa-solid fa-folder-tree text-sm w-6 mr-3 text-[var(--accent-primary)]"></i>
                     <span className="text-sm font-medium">Organize Library</span>
+                </Link>
+                <Link
+                    href="/metadata"
+                    className={`flex items-center px-6 py-2 text-[var(--text-main)] transition-all border-l-2 ${isActive("/metadata")
+                        ? "bg-[var(--bg-input)] border-[var(--accent-primary)] text-white"
+                        : "border-transparent hover:bg-[var(--bg-input)] hover:border-[var(--accent-primary)] text-[var(--text-muted)] hover:text-white"
+                        }`}
+                >
+                    <i className="fa-solid fa-tag text-sm w-6 mr-3 text-[var(--accent-primary)]"></i>
+                    <span className="text-sm font-medium">Metadata</span>
                 </Link>
                 <Link
                     href="/dedupe"

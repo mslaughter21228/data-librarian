@@ -15,6 +15,13 @@ export default function ConfigPage() {
     const [userExcludedFiles, setUserExcludedFiles] = useState("");
     const [pdfTargetChunkMb, setPdfTargetChunkMb] = useState("100");
     const [pdfPageChunkLimit, setPdfPageChunkLimit] = useState("1000");
+    // New keys added in Gap 1 / Gap 2
+    const [secondaryScanFolder, setSecondaryScanFolder] = useState("");
+    const [dedupeKeeperScoring, setDedupeKeeperScoring] = useState(true);
+    const [dedupePreferredExtensions, setDedupePreferredExtensions] = useState(".pdf, .epub");
+    const [cleanerExtractMetadata, setCleanerExtractMetadata] = useState(true);
+    // Persistent index
+    const [libraryMountPath, setLibraryMountPath] = useState("/mnt/library");
 
     useEffect(() => {
         fetch("http://localhost:2226/get_config")
@@ -31,6 +38,11 @@ export default function ConfigPage() {
                     setUserExcludedFiles((d.USER_EXCLUDED_FILES || []).join(", "));
                     setPdfTargetChunkMb(String(d.PDF_TARGET_CHUNK_MB || "100"));
                     setPdfPageChunkLimit(String(d.PDF_PAGE_CHUNK_LIMIT || "1000"));
+                    setSecondaryScanFolder(d.SECONDARY_SCAN_FOLDER || "");
+                    setDedupeKeeperScoring(d.DEDUPE_KEEPER_SCORING !== false);
+                    setDedupePreferredExtensions((d.DEDUPE_PREFERRED_EXTENSIONS || [".pdf", ".epub"]).join(", "));
+                    setCleanerExtractMetadata(d.CLEANER_EXTRACT_METADATA_BEFORE_RENAME !== false);
+                    setLibraryMountPath(d.LIBRARY_MOUNT_PATH || "/mnt/library");
                 }
             })
             .catch(() => addLog("Could not load config from backend.", "error"));
@@ -47,6 +59,11 @@ export default function ConfigPage() {
             USER_EXCLUDED_FILES: userExcludedFiles.split(",").map((s: string) => s.trim()).filter((s: string) => s),
             PDF_TARGET_CHUNK_MB: parseFloat(pdfTargetChunkMb),
             PDF_PAGE_CHUNK_LIMIT: parseInt(pdfPageChunkLimit),
+            SECONDARY_SCAN_FOLDER: secondaryScanFolder.trim(),
+            DEDUPE_KEEPER_SCORING: dedupeKeeperScoring,
+            DEDUPE_PREFERRED_EXTENSIONS: dedupePreferredExtensions.split(",").map((s: string) => s.trim()).filter((s: string) => s),
+            CLEANER_EXTRACT_METADATA_BEFORE_RENAME: cleanerExtractMetadata,
+            LIBRARY_MOUNT_PATH: libraryMountPath.trim(),
         };
         try {
             const res = await fetch("http://localhost:2226/save_config", {
@@ -131,6 +148,70 @@ export default function ConfigPage() {
                             </div>
                         </div>
                     </section>
+                    <section>
+                        <h4 className="text-sm font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-2 border-l-2 border-[var(--accent-primary)] pl-3">
+                            deDupe — Advanced
+                        </h4>
+                        <p className="text-[10px] font-mono text-[var(--text-muted)] mb-4 pl-3">
+                            Keeper scoring picks the best copy when duplicates are found. The secondary scan folder lets you compare an intake folder against the main library in a single pass.
+                        </p>
+                        <div className="bg-[var(--bg-input)]/30 p-3 border border-[var(--border-dim)]">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex items-center space-x-3 md:col-span-2 border-b border-[var(--border-dim)] pb-4">
+                                    <input type="checkbox" checked={dedupeKeeperScoring} onChange={e => setDedupeKeeperScoring(e.target.checked)} className="h-4 w-4 accent-[var(--accent-primary)]" />
+                                    <span className="text-sm font-mono text-[var(--text-main)]">Use Keeper Scoring (recommended — picks best copy by depth, name cleanliness, format)</span>
+                                </div>
+                                <div className="space-y-1 md:col-span-2">
+                                    <label className="text-xs text-[var(--text-main)] font-mono">Secondary Scan Folder</label>
+                                    <input type="text" value={secondaryScanFolder} onChange={e => setSecondaryScanFolder(e.target.value)} placeholder="/path/to/intake or downloads folder (optional)" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                    <p className="text-[10px] font-mono text-[var(--text-muted)]">Files here are compared against the primary library. Library always wins ties.</p>
+                                </div>
+                                <div className="space-y-1 md:col-span-2">
+                                    <label className="text-xs text-[var(--text-main)] font-mono">Preferred Extensions (comma separated)</label>
+                                    <input type="text" value={dedupePreferredExtensions} onChange={e => setDedupePreferredExtensions(e.target.value)} placeholder=".pdf, .epub" className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" />
+                                    <p className="text-[10px] font-mono text-[var(--text-muted)]">When two copies have equal scores, these formats are preferred as the keeper.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h4 className="text-sm font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-2 border-l-2 border-[var(--accent-primary)] pl-3">
+                            Persistent Index
+                        </h4>
+                        <p className="text-[10px] font-mono text-[var(--text-muted)] mb-4 pl-3">
+                            When deDupe scans the NAS mount path, it saves file hashes to a local database (<span className="text-[var(--text-main)]">~/.librarian/library_index.db</span>). On future runs, only new or changed files are re-hashed — dramatically faster for large libraries. Scans of any other folder (iCloud, staging, etc.) always use in-memory hashing and nothing is stored.
+                        </p>
+                        <div className="bg-[var(--bg-input)]/30 p-3 border border-[var(--border-dim)]">
+                            <div className="space-y-1">
+                                <label className="text-xs text-[var(--text-main)] font-mono">NAS / Library Mount Path</label>
+                                <input
+                                    type="text"
+                                    value={libraryMountPath}
+                                    onChange={e => setLibraryMountPath(e.target.value)}
+                                    placeholder="/mnt/library"
+                                    className="w-full bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-3 py-2 text-sm font-mono focus:border-[var(--accent-primary)] outline-none"
+                                />
+                                <p className="text-[10px] font-mono text-[var(--text-muted)]">Scans of this path (and any subfolder within it) use the persistent index. Leave as-is if your NAS mounts at /mnt/library.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h4 className="text-sm font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-2 border-l-2 border-[var(--accent-primary)] pl-3">
+                            File Cleaner
+                        </h4>
+                        <p className="text-[10px] font-mono text-[var(--text-muted)] mb-4 pl-3">
+                            When enabled, Anna&apos;s Archive filenames are parsed for embedded metadata (ISBN, author, year, publisher) before the filename is cleaned. Extracted values are written to XMP metadata gaps only — existing metadata is never overwritten.
+                        </p>
+                        <div className="bg-[var(--bg-input)]/30 p-3 border border-[var(--border-dim)]">
+                            <div className="flex items-center space-x-3">
+                                <input type="checkbox" checked={cleanerExtractMetadata} onChange={e => setCleanerExtractMetadata(e.target.checked)} className="h-4 w-4 accent-[var(--accent-primary)]" />
+                                <span className="text-sm font-mono text-[var(--text-main)]">Extract metadata from filename before cleaning (recommended for Anna&apos;s Archive files)</span>
+                            </div>
+                        </div>
+                    </section>
+
                     <section>
                         <h4 className="text-sm font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-2 border-l-2 border-info pl-3">
                             Segmenting Module

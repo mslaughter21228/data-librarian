@@ -2,22 +2,48 @@
     "__CORE__": "=== Core / Server Settings ===",
     "PORT": 2226,
     "DEFAULT_TARGET_FOLDER": "/home/mslaughter-admin/projects/Library",
-
     "__DEDUPE__": "=== deDupe Module (Duplicate Cleaner) ===",
     "MOVE_DUPLICATES": true,
     "DUPLICATE_HOLDING_DIR": "./_DuplicateHoldingBin",
     "LOG_NAME_PREFIX": "_duplicate_log",
-    "EXCLUDED_FOLDERS": ["_DuplicateHoldingBin", "Organized_Books"],
+    "EXCLUDED_FOLDERS": [
+        "_DuplicateHoldingBin",
+        "Organized_Books"
+    ],
     "USER_EXCLUDED_FILES": [],
-
     "__SEGMENTING__": "=== Segmenting Module (PDF Splitter) ===",
     "PDF_TARGET_CHUNK_MB": 100,
     "PDF_PAGE_CHUNK_LIMIT": 1000,
-
     "__ORGANIZER__": "=== Organize Library Module ===",
     "ORGANIZER_DEST_SUBFOLDER": "Organized_Books",
-
     "__CLEANER__": "=== File Name Cleaner Module ===",
-    "CLEANER_EXCLUDED_EXTENSIONS": [".py", ".json", ".html", ".txt", ".sh"],
-    "CLEANER_EXCLUDED_DIRS": ["_DuplicateHoldingBin", "Organized_Books"]
+    "CLEANER_EXCLUDED_EXTENSIONS": [
+        ".py",
+        ".json",
+        ".html",
+        ".txt",
+        ".sh"
+    ],
+    "CLEANER_EXCLUDED_DIRS": [
+        "_DuplicateHoldingBin",
+        "Organized_Books"
+    ],
+    "CLEANER_EXTRACT_METADATA_BEFORE_RENAME": true,
+    "CLEANER_METADATA_FIELDS_TO_EXTRACT": [
+        "isbn",
+        "year",
+        "author_raw",
+        "publisher_raw",
+        "source_site",
+        "archive_hash",
+        "edition"
+    ],
+    "SECONDARY_SCAN_FOLDER": "",
+    "DEDUPE_KEEPER_SCORING": true,
+    "DEDUPE_PREFERRED_EXTENSIONS": [
+        ".pdf",
+        ".epub"
+    ],
+    "__INDEX__": "=== Persistent Index (NAS Mount) ===",
+    "LIBRARY_MOUNT_PATH": "/mnt/library"
 }

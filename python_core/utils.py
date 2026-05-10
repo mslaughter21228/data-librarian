@@ -27,8 +27,10 @@ def sanitize_filename(filename: str, max_length: int = 250) -> str:
     # Replace multiple spaces with a single space
     sanitized = re.sub(r" +", " ", sanitized)
 
-    # Replace multiple hyphens with a single hyphen
-    sanitized = re.sub(r"--+", "-", sanitized)
+    # Replace runs of 3+ hyphens with a single hyphen.
+    # IMPORTANT: the double-dash '--' is the canonical field separator in
+    # the naming convention (v1.2) and must never be collapsed.
+    sanitized = re.sub(r"-{3,}", "-", sanitized)
 
     # Remove characters that are invalid in Windows filenames
     # These include: < > : " / \ | ? * and control characters (ASCII 0-31)

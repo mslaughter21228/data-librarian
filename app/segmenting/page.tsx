@@ -4,7 +4,7 @@ import { useTerminal } from "@/context/TerminalContext";
 import { DataLibrarian as StaticConfig } from "@/types/config";
 import { useState, useEffect } from "react";
 
-const STORAGE_KEY = "dl_last_path_segmenting";
+const SHARED_PATH_KEY = "dl_active_library_path";
 
 export default function SegmentingPage() {
     const { addLog, setLogFilePath } = useTerminal();
@@ -13,16 +13,12 @@ export default function SegmentingPage() {
     const [pageCount, setPageCount] = useState("1000");
     const [isRunning, setIsRunning] = useState(false);
 
-    // Pre-populate: localStorage first for path, then config for all values
+    // Read shared active library path + config values for size/page settings
     useEffect(() => {
-        const savedPath = localStorage.getItem(STORAGE_KEY);
         const cfg = StaticConfig.Config;
-
-        if (savedPath) {
-            setTargetPath(savedPath);
-        } else if (cfg.DEFAULT_TARGET_FOLDER) {
-            setTargetPath(cfg.DEFAULT_TARGET_FOLDER);
-        }
+        const shared = localStorage.getItem(SHARED_PATH_KEY);
+        if (shared) setTargetPath(shared);
+        else if (cfg.DEFAULT_TARGET_FOLDER) setTargetPath(cfg.DEFAULT_TARGET_FOLDER);
         if (cfg.PDF_TARGET_CHUNK_MB) setMaxSize(String(cfg.PDF_TARGET_CHUNK_MB));
         if (cfg.PDF_PAGE_CHUNK_LIMIT) setPageCount(String(cfg.PDF_PAGE_CHUNK_LIMIT));
 
@@ -31,17 +27,12 @@ export default function SegmentingPage() {
             .then(result => {
                 if (!result.success) return;
                 const d = result.data;
-                if (!savedPath && d.DEFAULT_TARGET_FOLDER) setTargetPath(d.DEFAULT_TARGET_FOLDER);
+                if (!shared && d.DEFAULT_TARGET_FOLDER) setTargetPath(d.DEFAULT_TARGET_FOLDER);
                 if (d.PDF_TARGET_CHUNK_MB) setMaxSize(String(d.PDF_TARGET_CHUNK_MB));
                 if (d.PDF_PAGE_CHUNK_LIMIT) setPageCount(String(d.PDF_PAGE_CHUNK_LIMIT));
             })
             .catch(() => {});
     }, []);
-
-    const handlePathChange = (newPath: string) => {
-        setTargetPath(newPath);
-        localStorage.setItem(STORAGE_KEY, newPath);
-    };
 
     const pollPdfStatus = () => {
         const interval = setInterval(async () => {
@@ -104,25 +95,19 @@ export default function SegmentingPage() {
                 </h3>
 
                 <div className="space-y-6">
-                    {/* Target Folder Input */}
+                    {/* Active folder display */}
                     <div className="space-y-2">
                         <label className="block text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider">
-                            Target Folder (Absolute Path)
+                            Target Folder
                         </label>
-                        <div className="flex">
-                            <span className="inline-flex items-center px-3 rounded-l border border-r-0 border-[var(--border-dim)] bg-[var(--bg-input)] text-[var(--text-muted)]">
-                                <i className="fa-solid fa-folder-open text-xs"></i>
+                        <div className="flex items-center gap-3 px-4 py-2.5 bg-[var(--bg-input)] border border-[var(--border-dim)] rounded-sm">
+                            <i className="fa-solid fa-folder text-[var(--accent-primary)]"></i>
+                            <span className="font-mono text-sm text-[var(--text-main)] break-all">
+                                {targetPath || <span className="text-[var(--text-muted)]">No folder selected — go to Library tab to set active folder</span>}
                             </span>
-                            <input
-                                type="text"
-                                value={targetPath}
-                                onChange={(e) => handlePathChange(e.target.value)}
-                                placeholder="/path/to/directory"
-                                className="flex-1 block w-full rounded-none rounded-r bg-[var(--bg-dark)] border border-[var(--border-dim)] text-[var(--text-main)] px-4 py-2.5 focus:ring-1 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] outline-none font-mono text-sm placeholder-[var(--text-muted)] transition-all"
-                            />
                         </div>
                         <p className="text-[10px] text-[var(--text-muted)] font-mono">
-                            The directory to scan for large PDF files to segment.
+                            Active folder is set from the <span className="text-[var(--accent-primary)]">Library</span> tab. PDFs larger than the max size will be split into chunks.
                         </p>
                     </div>
 

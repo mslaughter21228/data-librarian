@@ -47,6 +47,24 @@ DEFAULTS = {
     # File Name Cleaner
     "CLEANER_EXCLUDED_EXTENSIONS": [".py", ".json", ".html", ".txt", ".sh"],
     "CLEANER_EXCLUDED_DIRS":       ["_DuplicateHoldingBin", "Organized_Books"],
+
+    # Gap 1 — Filename Metadata Extraction
+    "CLEANER_EXTRACT_METADATA_BEFORE_RENAME": True,
+    "CLEANER_METADATA_FIELDS_TO_EXTRACT":     ["isbn", "year", "author_raw",
+                                               "publisher_raw", "source_site",
+                                               "archive_hash", "edition"],
+
+    # Gap 2 — deDuper: secondary scan root + keeper scoring
+    "SECONDARY_SCAN_FOLDER":      "",
+    "DEDUPE_KEEPER_SCORING":      True,
+    "DEDUPE_PREFERRED_EXTENSIONS": [".pdf", ".epub"],
+
+    # Persistent index — NAS mount point
+    # When the active folder is inside this path, deDupe uses the
+    # persistent SQLite index (~/.librarian/library_index.db) so it
+    # only re-hashes new/changed files on subsequent runs.
+    # Leave empty to always use ephemeral (in-memory) hashing.
+    "LIBRARY_MOUNT_PATH":         "",
 }
 
 # ── Module-level variables (populated by load_config) ────────────────────────
@@ -63,6 +81,18 @@ ORGANIZER_DEST_SUBFOLDER    = DEFAULTS["ORGANIZER_DEST_SUBFOLDER"]
 CLEANER_EXCLUDED_EXTENSIONS = DEFAULTS["CLEANER_EXCLUDED_EXTENSIONS"]
 CLEANER_EXCLUDED_DIRS       = DEFAULTS["CLEANER_EXCLUDED_DIRS"]
 
+# Gap 1
+CLEANER_EXTRACT_METADATA_BEFORE_RENAME = DEFAULTS["CLEANER_EXTRACT_METADATA_BEFORE_RENAME"]
+CLEANER_METADATA_FIELDS_TO_EXTRACT     = DEFAULTS["CLEANER_METADATA_FIELDS_TO_EXTRACT"]
+
+# Gap 2
+SECONDARY_SCAN_FOLDER      = DEFAULTS["SECONDARY_SCAN_FOLDER"]
+DEDUPE_KEEPER_SCORING      = DEFAULTS["DEDUPE_KEEPER_SCORING"]
+DEDUPE_PREFERRED_EXTENSIONS = DEFAULTS["DEDUPE_PREFERRED_EXTENSIONS"]
+
+# Persistent index
+LIBRARY_MOUNT_PATH         = DEFAULTS["LIBRARY_MOUNT_PATH"]
+
 # Derived: system + user excludes combined
 EXCLUDED_FILES = list(SYSTEM_EXCLUDED_FILES)
 
@@ -73,6 +103,9 @@ def load_config():
     global LOG_NAME_PREFIX, EXCLUDED_FOLDERS, USER_EXCLUDED_FILES, EXCLUDED_FILES
     global PDF_TARGET_CHUNK_MB, PDF_PAGE_CHUNK_LIMIT
     global ORGANIZER_DEST_SUBFOLDER, CLEANER_EXCLUDED_EXTENSIONS, CLEANER_EXCLUDED_DIRS
+    global CLEANER_EXTRACT_METADATA_BEFORE_RENAME, CLEANER_METADATA_FIELDS_TO_EXTRACT
+    global SECONDARY_SCAN_FOLDER, DEDUPE_KEEPER_SCORING, DEDUPE_PREFERRED_EXTENSIONS
+    global LIBRARY_MOUNT_PATH
 
     if os.path.exists(CONFIG_FILE):
         try:
@@ -91,6 +124,18 @@ def load_config():
             ORGANIZER_DEST_SUBFOLDER    = data.get("ORGANIZER_DEST_SUBFOLDER",    DEFAULTS["ORGANIZER_DEST_SUBFOLDER"])
             CLEANER_EXCLUDED_EXTENSIONS = data.get("CLEANER_EXCLUDED_EXTENSIONS", DEFAULTS["CLEANER_EXCLUDED_EXTENSIONS"])
             CLEANER_EXCLUDED_DIRS       = data.get("CLEANER_EXCLUDED_DIRS",       DEFAULTS["CLEANER_EXCLUDED_DIRS"])
+
+            # Gap 1
+            CLEANER_EXTRACT_METADATA_BEFORE_RENAME = data.get("CLEANER_EXTRACT_METADATA_BEFORE_RENAME", DEFAULTS["CLEANER_EXTRACT_METADATA_BEFORE_RENAME"])
+            CLEANER_METADATA_FIELDS_TO_EXTRACT     = data.get("CLEANER_METADATA_FIELDS_TO_EXTRACT",     DEFAULTS["CLEANER_METADATA_FIELDS_TO_EXTRACT"])
+
+            # Gap 2
+            SECONDARY_SCAN_FOLDER       = data.get("SECONDARY_SCAN_FOLDER",       DEFAULTS["SECONDARY_SCAN_FOLDER"])
+            DEDUPE_KEEPER_SCORING       = data.get("DEDUPE_KEEPER_SCORING",        DEFAULTS["DEDUPE_KEEPER_SCORING"])
+            DEDUPE_PREFERRED_EXTENSIONS = data.get("DEDUPE_PREFERRED_EXTENSIONS",  DEFAULTS["DEDUPE_PREFERRED_EXTENSIONS"])
+
+            # Persistent index
+            LIBRARY_MOUNT_PATH          = data.get("LIBRARY_MOUNT_PATH",           DEFAULTS["LIBRARY_MOUNT_PATH"])
 
             EXCLUDED_FILES = list(SYSTEM_EXCLUDED_FILES.union(set(USER_EXCLUDED_FILES)))
             print(f"Configuration loaded from {CONFIG_FILE}")
