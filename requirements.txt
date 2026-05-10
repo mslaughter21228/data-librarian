@@ -1,0 +1,16 @@
+# Data Librarian — Python backend dependencies
+# Install with: pip install -r requirements.txt
+
+# Web framework
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# PDF handling
+PyMuPDF>=1.24.0
+
+# E-Book handling (added by 0xsha1man, Dec 2025)
+ebooklib==0.20
+lxml>=6.0.0
+
+# Standard library modules used (no install needed):
+#   os, re, shutil, threading, hashlib, json, sqlite3, time

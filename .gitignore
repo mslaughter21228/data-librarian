@@ -75,3 +75,7 @@ Thumbs.db
 _DuplicateHoldingBin/
 *.log
 test_data/
+
+# Python virtual environment (never commit this)
+venv/
+.venv/
