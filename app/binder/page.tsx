@@ -23,19 +23,21 @@ export default function BinderPage() {
 
     useEffect(() => {
         const cfg = StaticConfig.Config;
-        const base = localStorage.getItem(STORAGE_KEY_OUTPUT)
-            || cfg.DEFAULT_TARGET_FOLDER || "";
-        setPdfSource(localStorage.getItem(STORAGE_KEY_PDF) || cfg.DEFAULT_TARGET_FOLDER || "");
+        // Use shared active library path as the default for all binder fields
+        const sharedPath = localStorage.getItem("dl_active_library_path") || cfg.DEFAULT_TARGET_FOLDER || "";
+        setPdfSource(localStorage.getItem(STORAGE_KEY_PDF) || sharedPath);
         setTextSource(localStorage.getItem(STORAGE_KEY_TEXT) || "");
-        setOutputPath(base);
+        setOutputPath(localStorage.getItem(STORAGE_KEY_OUTPUT) || sharedPath);
 
         fetch("http://localhost:2226/get_config")
             .then(r => r.json())
             .then(r => {
                 if (!r.success) return;
-                if (!localStorage.getItem(STORAGE_KEY_PDF) && r.data.DEFAULT_TARGET_FOLDER)
+                // Only fall back to config default if nothing is set at all
+                const active = localStorage.getItem("dl_active_library_path");
+                if (!localStorage.getItem(STORAGE_KEY_PDF) && !active && r.data.DEFAULT_TARGET_FOLDER)
                     setPdfSource(r.data.DEFAULT_TARGET_FOLDER);
-                if (!localStorage.getItem(STORAGE_KEY_OUTPUT) && r.data.DEFAULT_TARGET_FOLDER)
+                if (!localStorage.getItem(STORAGE_KEY_OUTPUT) && !active && r.data.DEFAULT_TARGET_FOLDER)
                     setOutputPath(r.data.DEFAULT_TARGET_FOLDER);
             })
             .catch(() => {});
